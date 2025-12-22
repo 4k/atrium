@@ -372,11 +372,10 @@ EXECUTE FUNCTION update_pocket_balance();
 CREATE OR REPLACE FUNCTION sync_savings_goal_amount()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.pocket_id IS NOT NULL THEN
-    UPDATE savings_goals
-    SET current_amount = (SELECT current_balance FROM pockets WHERE id = NEW.pocket_id)
-    WHERE pocket_id = NEW.pocket_id;
-  END IF;
+  -- NEW.id refers to the pocket's id since this trigger fires on the pockets table
+  UPDATE savings_goals
+  SET current_amount = NEW.current_balance
+  WHERE pocket_id = NEW.id;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
