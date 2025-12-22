@@ -32,7 +32,7 @@ export async function getFirstHousehold() {
     .from('households')
     .select('*')
     .limit(1)
-    .single()
+    .maybeSingle()
 
   if (error) throw error
   return data

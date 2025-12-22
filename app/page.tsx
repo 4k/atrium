@@ -32,6 +32,27 @@ function LoadingCard() {
 export default async function Home() {
   // Fetch household ID for Supabase-integrated components
   const household = await getFirstHousehold();
+
+  // Handle case when no household exists in database
+  if (!household) {
+    return (
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center p-8 max-w-md">
+          <div className="p-4 rounded-full bg-muted inline-block mb-4">
+            <Wallet className="h-12 w-12 text-muted-foreground" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">No Household Found</h1>
+          <p className="text-muted-foreground mb-4">
+            The database appears to be empty. Please run the seed data to get started.
+          </p>
+          <code className="block bg-muted p-3 rounded text-sm text-left">
+            npx supabase db reset
+          </code>
+        </div>
+      </main>
+    );
+  }
+
   const householdId = household.id;
 
   return (
