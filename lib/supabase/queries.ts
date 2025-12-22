@@ -615,3 +615,198 @@ export async function getTotalBudgeted(householdId: string, month: Date) {
   const budget = await getBudgetCategories(householdId, month)
   return budget.reduce((sum, category) => sum + category.budgeted, 0)
 }
+
+// ============================================================================
+// SETTINGS
+// ============================================================================
+
+/**
+ * Get household settings
+ * Creates default settings if none exist
+ */
+export async function getHouseholdSettings(householdId: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('household_settings')
+    .select('*')
+    .eq('household_id', householdId)
+    .maybeSingle()
+
+  if (error) throw error
+
+  // Return default settings if none exist
+  if (!data) {
+    return {
+      household_id: householdId,
+      currency: 'EUR',
+      locale: 'de-DE',
+      timezone: 'Europe/Berlin',
+      financial_year_start_month: 1,
+      budget_cycle: 'monthly' as const,
+      budget_threshold_under: 80,
+      budget_threshold_near: 95,
+      bill_alert_days_before: 3,
+      bill_overdue_alert_enabled: true,
+      default_savings_target_percentage: 20,
+      emergency_fund_months: 6,
+    }
+  }
+
+  return data
+}
+
+/**
+ * Get user preferences for a specific user
+ * Creates default preferences if none exist
+ */
+export async function getUserPreferences(userId: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('user_preferences')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (error) throw error
+
+  // Return default preferences if none exist
+  if (!data) {
+    return {
+      user_id: userId,
+      theme: 'dark' as const,
+      compact_view: false,
+      show_budget_percentages: true,
+      show_income_breakdown: true,
+      default_dashboard_tab: 'overview',
+      email_notifications_enabled: true,
+      bill_reminders_enabled: true,
+      budget_alerts_enabled: true,
+      savings_goal_alerts_enabled: true,
+      decimal_places: 2,
+      use_compact_numbers: false,
+    }
+  }
+
+  return data
+}
+
+/**
+ * Get component visibility settings for a user
+ * Creates default visibility if none exist (all visible)
+ */
+export async function getComponentVisibility(userId: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('component_visibility')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (error) throw error
+
+  // Return default visibility (all visible) if none exist
+  if (!data) {
+    return {
+      user_id: userId,
+      show_account_summary: true,
+      show_income_breakdown: true,
+      show_budget_tracker: true,
+      show_savings_goals: true,
+      show_monthly_targets: true,
+      show_upcoming_bills: true,
+      show_child_expenses: true,
+      show_gift_budget: true,
+      show_travel_budget: true,
+      show_pockets_overview: true,
+      show_contribution_tracker: true,
+      show_personal_allowance: true,
+      show_sinking_funds: true,
+      show_couple_scorecard: true,
+      show_money_flow: true,
+    }
+  }
+
+  return data
+}
+
+/**
+ * Get custom categories for a household by type
+ */
+export async function getCustomCategories(householdId: string, categoryType?: string) {
+  const supabase = await createClient()
+  let query = supabase
+    .from('custom_categories')
+    .select('*')
+    .eq('household_id', householdId)
+    .order('sort_order')
+
+  if (categoryType) {
+    query = query.eq('category_type', categoryType)
+  }
+
+  const { data, error } = await query
+
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Get default categories (system-wide) by type
+ */
+export async function getDefaultCategories(categoryType: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('custom_categories')
+    .select('*')
+    .eq('household_id', '00000000-0000-0000-0000-000000000000')
+    .eq('category_type', categoryType)
+    .eq('is_default', true)
+    .order('sort_order')
+
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Get all categories (default + custom) for a household by type
+ */
+export async function getAllCategories(householdId: string, categoryType: string) {
+  const [defaultCategories, customCategories] = await Promise.all([
+    getDefaultCategories(categoryType),
+    getCustomCategories(householdId, categoryType),
+  ])
+
+  // Merge default and custom categories
+  return [...defaultCategories, ...customCategories]
+}
+
+/**
+ * Get alert configurations for a household
+ */
+export async function getAlertConfigurations(householdId: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('alert_configurations')
+    .select('*')
+    .eq('household_id', householdId)
+    .order('alert_type')
+
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Get a specific alert configuration
+ */
+export async function getAlertConfiguration(householdId: string, alertType: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('alert_configurations')
+    .select('*')
+    .eq('household_id', householdId)
+    .eq('alert_type', alertType)
+    .maybeSingle()
+
+  if (error) throw error
+  return data
+}

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Home, UserPlus, Wallet } from 'lucide-react';
+import { upsertHouseholdSettings, upsertUserPreferences, upsertComponentVisibility } from '@/lib/supabase/mutations';
 
 export default function SetupPage() {
   const [householdName, setHouseholdName] = useState('');
@@ -44,6 +45,56 @@ export default function SetupPage() {
       });
 
       if (updateError) throw updateError;
+
+      // Create default household settings
+      await upsertHouseholdSettings(household.id, {
+        household_name: householdName || 'My Household',
+        currency: 'EUR',
+        locale: 'de-DE',
+        timezone: 'Europe/Berlin',
+        financial_year_start_month: 1,
+        budget_cycle: 'monthly',
+        budget_threshold_under: 80,
+        budget_threshold_near: 95,
+        bill_alert_days_before: 3,
+        bill_overdue_alert_enabled: true,
+        default_savings_target_percentage: 20,
+        emergency_fund_months: 6,
+      });
+
+      // Create default user preferences
+      await upsertUserPreferences(user.id, household.id, {
+        theme: 'dark',
+        compact_view: false,
+        show_budget_percentages: true,
+        show_income_breakdown: true,
+        default_dashboard_tab: 'overview',
+        email_notifications_enabled: true,
+        bill_reminders_enabled: true,
+        budget_alerts_enabled: true,
+        savings_goal_alerts_enabled: true,
+        decimal_places: 2,
+        use_compact_numbers: false,
+      });
+
+      // Create default component visibility (all visible)
+      await upsertComponentVisibility(user.id, household.id, {
+        show_account_summary: true,
+        show_income_breakdown: true,
+        show_budget_tracker: true,
+        show_savings_goals: true,
+        show_monthly_targets: true,
+        show_upcoming_bills: true,
+        show_child_expenses: true,
+        show_gift_budget: true,
+        show_travel_budget: true,
+        show_pockets_overview: true,
+        show_contribution_tracker: true,
+        show_personal_allowance: true,
+        show_sinking_funds: true,
+        show_couple_scorecard: true,
+        show_money_flow: true,
+      });
 
       // Redirect to dashboard
       router.push('/');

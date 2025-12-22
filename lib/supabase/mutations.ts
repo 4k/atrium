@@ -678,3 +678,268 @@ export async function updateTravelExpense(
   if (error) throw error
   return data
 }
+
+// ============================================================================
+// SETTINGS
+// ============================================================================
+
+/**
+ * Create or update household settings
+ */
+export async function upsertHouseholdSettings(
+  householdId: string,
+  settings: Partial<Tables['household_settings']['Insert']>
+) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('household_settings')
+    .upsert(
+      {
+        household_id: householdId,
+        ...settings,
+      },
+      {
+        onConflict: 'household_id',
+      }
+    )
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update household settings
+ */
+export async function updateHouseholdSettings(
+  householdId: string,
+  settings: Partial<Tables['household_settings']['Update']>
+) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('household_settings')
+    .update(settings)
+    .eq('household_id', householdId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Create or update user preferences
+ */
+export async function upsertUserPreferences(
+  userId: string,
+  householdId: string,
+  preferences: Partial<Tables['user_preferences']['Insert']>
+) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('user_preferences')
+    .upsert(
+      {
+        user_id: userId,
+        household_id: householdId,
+        ...preferences,
+      },
+      {
+        onConflict: 'user_id,household_id',
+      }
+    )
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update user preferences
+ */
+export async function updateUserPreferences(
+  userId: string,
+  preferences: Partial<Tables['user_preferences']['Update']>
+) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('user_preferences')
+    .update(preferences)
+    .eq('user_id', userId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Create or update component visibility
+ */
+export async function upsertComponentVisibility(
+  userId: string,
+  householdId: string,
+  visibility: Partial<Tables['component_visibility']['Insert']>
+) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('component_visibility')
+    .upsert(
+      {
+        user_id: userId,
+        household_id: householdId,
+        ...visibility,
+      },
+      {
+        onConflict: 'user_id,household_id',
+      }
+    )
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update component visibility
+ */
+export async function updateComponentVisibility(
+  userId: string,
+  visibility: Partial<Tables['component_visibility']['Update']>
+) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('component_visibility')
+    .update(visibility)
+    .eq('user_id', userId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Create a custom category
+ */
+export async function createCustomCategory(
+  householdId: string,
+  categoryType: string,
+  name: string,
+  icon?: string,
+  color?: string,
+  sortOrder?: number
+) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('custom_categories')
+    .insert({
+      household_id: householdId,
+      category_type: categoryType,
+      name,
+      icon,
+      color,
+      is_default: false,
+      sort_order: sortOrder ?? 999,
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update a custom category
+ */
+export async function updateCustomCategory(
+  id: string,
+  updates: Partial<Tables['custom_categories']['Update']>
+) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('custom_categories')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Delete a custom category
+ */
+export async function deleteCustomCategory(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('custom_categories').delete().eq('id', id)
+
+  if (error) throw error
+}
+
+/**
+ * Create or update an alert configuration
+ */
+export async function upsertAlertConfiguration(
+  householdId: string,
+  alertType: string,
+  config: Partial<Tables['alert_configurations']['Insert']>
+) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('alert_configurations')
+    .upsert(
+      {
+        household_id: householdId,
+        alert_type: alertType,
+        ...config,
+      },
+      {
+        onConflict: 'household_id,alert_type',
+      }
+    )
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update an alert configuration
+ */
+export async function updateAlertConfiguration(
+  householdId: string,
+  alertType: string,
+  updates: Partial<Tables['alert_configurations']['Update']>
+) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('alert_configurations')
+    .update(updates)
+    .eq('household_id', householdId)
+    .eq('alert_type', alertType)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Delete an alert configuration
+ */
+export async function deleteAlertConfiguration(householdId: string, alertType: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('alert_configurations')
+    .delete()
+    .eq('household_id', householdId)
+    .eq('alert_type', alertType)
+
+  if (error) throw error
+}
