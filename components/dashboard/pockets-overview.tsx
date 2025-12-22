@@ -2,18 +2,70 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PocketCard } from './pocket-card';
-import { pockets, getTotalPocketBalance, getTotalPocketAllocations } from '@/lib/mock-data';
 import { formatCurrency } from '@/lib/utils';
 import { Wallet, TrendingUp, PiggyBank } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/database.types';
 
-export function PocketsOverview() {
-  const totalBalance = getTotalPocketBalance();
-  const totalAllocations = getTotalPocketAllocations();
-  const totalSpentThisMonth = pockets.reduce((sum, p) => sum + p.spentThisMonth, 0);
-  
+type Pocket = Database['public']['Tables']['pockets']['Row'];
+
+export function PocketsOverview({ householdId }: { householdId: string }) {
+  const [pockets, setPockets] = useState<Pocket[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPockets() {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('pockets')
+        .select('*')
+        .eq('household_id', householdId)
+        .order('created_at');
+
+      if (error) {
+        console.error('Error fetching pockets:', error);
+        setLoading(false);
+        return;
+      }
+
+      setPockets(data || []);
+      setLoading(false);
+    }
+
+    fetchPockets();
+  }, [householdId]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Wallet className="h-5 w-5" />
+                Revolut Pockets
+              </CardTitle>
+              <CardDescription>Virtual sub-accounts for organized budgeting</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Loading pockets...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const totalBalance = pockets.reduce((sum, p) => sum + p.current_balance, 0);
+  const totalAllocations = pockets.reduce((sum, p) => sum + (p.monthly_allocation || 0), 0);
+  const totalSpentThisMonth = 0; // We'll calculate this from transactions later
+
   // Separate pockets into spending and savings
-  const spendingPockets = pockets.filter(p => p.type === 'bills' || p.type === 'groceries');
-  const savingsPockets = pockets.filter(p => p.type === 'emergency' || p.type === 'vacation' || p.type === 'investment' || p.type === 'sinking');
+  const spendingPockets = pockets.filter(p => p.type === 'bills' || p.type === 'groceries' || p.type === 'spending');
+  const savingsPockets = pockets.filter(p => p.type === 'emergency' || p.type === 'vacation' || p.type === 'investment' || p.type === 'sinking' || p.type === 'savings');
 
   return (
     <Card>

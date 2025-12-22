@@ -1,13 +1,68 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getUpcomingBills } from '@/lib/mock-data';
 import { formatCurrency } from '@/lib/utils';
-import { Calendar, CheckCircle2, Clock, Repeat, Zap } from 'lucide-react';
+import { Calendar, CheckCircle2, Zap, Repeat } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/database.types';
 
-export function UpcomingBills() {
-  const upcomingBills = getUpcomingBills();
-  const totalDue = upcomingBills.reduce((sum, bill) => sum + bill.amount, 0);
+type Bill = Database['public']['Tables']['bills']['Row'];
+
+export function UpcomingBills({ householdId }: { householdId: string }) {
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchBills() {
+      const supabase = createClient();
+      const today = new Date();
+      const futureDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+      const { data, error } = await supabase
+        .from('bills')
+        .select('*')
+        .eq('household_id', householdId)
+        .eq('is_paid', false)
+        .gte('due_date', today.toISOString().split('T')[0])
+        .lte('due_date', futureDate.toISOString().split('T')[0])
+        .order('due_date');
+
+      if (error) {
+        console.error('Error fetching bills:', error);
+        setLoading(false);
+        return;
+      }
+
+      setBills(data || []);
+      setLoading(false);
+    }
+
+    fetchBills();
+  }, [householdId]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Upcoming Bills</CardTitle>
+              <CardDescription>Bills to be paid this month</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Loading bills...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const totalDue = bills.reduce((sum, bill) => sum + bill.amount, 0);
 
   const getDaysUntilDue = (dueDate: string): number => {
     const today = new Date();
@@ -53,9 +108,9 @@ export function UpcomingBills() {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {upcomingBills.map((bill) => {
-            const daysUntil = getDaysUntilDue(bill.dueDate);
-            const dueDate = new Date(bill.dueDate);
+          {bills.map((bill) => {
+            const daysUntil = getDaysUntilDue(bill.due_date);
+            const dueDate = new Date(bill.due_date);
 
             return (
               <div
@@ -63,27 +118,29 @@ export function UpcomingBills() {
                 className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
               >
                 <div className="flex items-center gap-4 flex-1">
-                  <div className="text-3xl">{bill.icon}</div>
+                  <div className="text-3xl">📝</div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <h4 className="font-semibold">{bill.name}</h4>
                       <div className="flex items-center gap-1">
-                        {bill.autopay && (
+                        {bill.is_autopay && (
                           <Badge variant="outline" className="text-xs">
                             <Zap className="h-3 w-3 mr-1" />
                             Auto
                           </Badge>
                         )}
-                        {bill.isRecurring && (
+                        {bill.frequency !== 'one-time' && (
                           <Badge variant="outline" className="text-xs">
                             <Repeat className="h-3 w-3 mr-1" />
-                            {bill.recurringFrequency}
+                            {bill.frequency}
                           </Badge>
                         )}
                       </div>
                     </div>
                     <div className="flex items-center gap-3 mt-1">
-                      <p className="text-sm text-muted-foreground">{bill.category}</p>
+                      {bill.category && (
+                        <p className="text-sm text-muted-foreground">{bill.category}</p>
+                      )}
                       <div className={`flex items-center gap-1 text-sm font-medium ${getDueDateColor(daysUntil)}`}>
                         <Calendar className="h-3 w-3" />
                         {dueDate.toLocaleDateString('de-DE', {
@@ -105,7 +162,7 @@ export function UpcomingBills() {
             );
           })}
 
-          {upcomingBills.length === 0 && (
+          {bills.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <CheckCircle2 className="h-12 w-12 mx-auto mb-2 text-green-500" />
               <p>All bills are paid!</p>
