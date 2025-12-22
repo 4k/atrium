@@ -17,7 +17,9 @@ import { CoupleScorecard } from '@/components/dashboard/couple-scorecard';
 import { PocketTransfers } from '@/components/dashboard/pocket-transfers';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Wallet } from 'lucide-react';
-import { getFirstHousehold } from '@/lib/supabase/queries';
+import { getUserHousehold } from '@/lib/supabase/auth';
+import { UserMenu } from '@/components/user-menu';
+import { redirect } from 'next/navigation';
 
 function LoadingCard() {
   return (
@@ -30,8 +32,13 @@ function LoadingCard() {
 }
 
 export default async function Home() {
-  // Fetch household ID for Supabase-integrated components
-  const household = await getFirstHousehold();
+  // Fetch household for authenticated user
+  const household = await getUserHousehold();
+
+  if (!household) {
+    redirect('/login');
+  }
+
   const householdId = household.id;
 
   return (
@@ -41,17 +48,22 @@ export default async function Home() {
 
       <div className="relative container mx-auto px-4 py-8 max-w-7xl">
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-accent/80">
-              <Wallet className="h-6 w-6 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-accent/80">
+                <Wallet className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                  Family Budget Dashboard
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  {household.name}
+                </p>
+              </div>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Family Budget Dashboard
-            </h1>
+            <UserMenu />
           </div>
-          <p className="text-muted-foreground text-sm">
-            Tony & Tatsiana's Financial Overview
-          </p>
         </div>
 
         <div className="space-y-6">
