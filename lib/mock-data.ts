@@ -7,6 +7,11 @@ import {
   MonthlyData,
   AccountBalance,
   MonthlyTargets,
+  Bill,
+  Child,
+  ChildExpense,
+  GiftRecipient,
+  TravelPlan,
 } from './types';
 
 export const people: Person[] = [
@@ -296,4 +301,316 @@ export const getSharedExpenses = (): number => {
   return budgetCategories
     .filter((cat) => cat.personId === 'shared')
     .reduce((sum, cat) => sum + cat.spent, 0);
+};
+
+// Bills
+export const bills: Bill[] = [
+  {
+    id: 'bill-rent',
+    name: 'Rent',
+    amount: 1200,
+    dueDate: '2025-01-01',
+    category: 'Housing',
+    isPaid: false,
+    isRecurring: true,
+    recurringFrequency: 'monthly',
+    autopay: false,
+    icon: '🏠',
+  },
+  {
+    id: 'bill-electricity',
+    name: 'Electricity',
+    amount: 85,
+    dueDate: '2025-01-05',
+    category: 'Utilities',
+    isPaid: false,
+    isRecurring: true,
+    recurringFrequency: 'monthly',
+    autopay: true,
+    icon: '⚡',
+  },
+  {
+    id: 'bill-internet',
+    name: 'Internet & Phone',
+    amount: 65,
+    dueDate: '2025-01-10',
+    category: 'Utilities',
+    isPaid: false,
+    isRecurring: true,
+    recurringFrequency: 'monthly',
+    autopay: true,
+    icon: '📡',
+  },
+  {
+    id: 'bill-insurance',
+    name: 'Family Insurance',
+    amount: 320,
+    dueDate: '2025-01-15',
+    category: 'Insurance',
+    isPaid: false,
+    isRecurring: true,
+    recurringFrequency: 'monthly',
+    autopay: true,
+    icon: '🛡️',
+  },
+  {
+    id: 'bill-water',
+    name: 'Water',
+    amount: 30,
+    dueDate: '2025-01-20',
+    category: 'Utilities',
+    isPaid: false,
+    isRecurring: true,
+    recurringFrequency: 'monthly',
+    autopay: false,
+    icon: '💧',
+  },
+  {
+    id: 'bill-nursery',
+    name: 'Nursery/Daycare',
+    amount: 450,
+    dueDate: '2024-12-28',
+    category: 'Childcare',
+    isPaid: true,
+    isRecurring: true,
+    recurringFrequency: 'monthly',
+    autopay: false,
+    icon: '👶',
+  },
+  {
+    id: 'bill-spotify',
+    name: 'Spotify Family',
+    amount: 16,
+    dueDate: '2025-01-12',
+    category: 'Subscriptions',
+    isPaid: false,
+    isRecurring: true,
+    recurringFrequency: 'monthly',
+    autopay: true,
+    icon: '🎵',
+  },
+];
+
+// Children
+export const children: Child[] = [
+  {
+    id: 'child-1',
+    name: 'Sofia',
+    age: 4,
+    avatar: 'S',
+    color: 'bg-pink-500',
+  },
+];
+
+// Child Expenses
+export const childExpenses: ChildExpense[] = [
+  {
+    id: 'ce-1',
+    childId: 'child-1',
+    category: 'education',
+    name: 'Nursery/Daycare',
+    amount: 450,
+    budgeted: 450,
+    icon: '🏫',
+  },
+  {
+    id: 'ce-2',
+    childId: 'child-1',
+    category: 'activities',
+    name: 'Swimming Lessons',
+    amount: 60,
+    budgeted: 80,
+    icon: '🏊',
+  },
+  {
+    id: 'ce-3',
+    childId: 'child-1',
+    category: 'activities',
+    name: 'Music Class',
+    amount: 45,
+    budgeted: 50,
+    icon: '🎹',
+  },
+  {
+    id: 'ce-4',
+    childId: 'child-1',
+    category: 'clothing',
+    name: 'Clothes & Shoes',
+    amount: 85,
+    budgeted: 100,
+    icon: '👗',
+  },
+  {
+    id: 'ce-5',
+    childId: 'child-1',
+    category: 'healthcare',
+    name: 'Healthcare & Medications',
+    amount: 30,
+    budgeted: 50,
+    icon: '🏥',
+  },
+  {
+    id: 'ce-6',
+    childId: 'child-1',
+    category: 'toys',
+    name: 'Toys & Books',
+    amount: 40,
+    budgeted: 50,
+    icon: '🧸',
+  },
+  {
+    id: 'ce-7',
+    childId: 'child-1',
+    category: 'food',
+    name: 'Special Food & Snacks',
+    amount: 65,
+    budgeted: 80,
+    icon: '🍎',
+  },
+];
+
+// Gift Recipients
+export const giftRecipients: GiftRecipient[] = [
+  {
+    id: 'gift-1',
+    name: 'Mom (Tony)',
+    relationship: 'family',
+    occasion: 'Birthday',
+    occasionDate: '2025-02-14',
+    budgeted: 150,
+    spent: 0,
+    ideas: ['Spa voucher', 'Jewelry', 'Cooking class'],
+  },
+  {
+    id: 'gift-2',
+    name: 'Dad (Tony)',
+    relationship: 'family',
+    occasion: 'Birthday',
+    occasionDate: '2025-04-20',
+    budgeted: 120,
+    spent: 0,
+    ideas: ['Golf accessories', 'Watch', 'Book collection'],
+  },
+  {
+    id: 'gift-3',
+    name: 'Mom (Tatsiana)',
+    relationship: 'family',
+    occasion: 'Birthday',
+    occasionDate: '2025-03-08',
+    budgeted: 150,
+    spent: 0,
+    ideas: ['Flowers & chocolates', 'Perfume', 'Handbag'],
+  },
+  {
+    id: 'gift-4',
+    name: 'Dad (Tatsiana)',
+    relationship: 'family',
+    occasion: 'Birthday',
+    occasionDate: '2025-06-12',
+    budgeted: 120,
+    spent: 0,
+    ideas: ['Fishing gear', 'Power tools', 'Garden equipment'],
+  },
+  {
+    id: 'gift-5',
+    name: 'Sofia',
+    relationship: 'family',
+    occasion: 'Birthday',
+    occasionDate: '2025-05-15',
+    budgeted: 200,
+    spent: 0,
+    ideas: ['Bicycle', 'Dollhouse', 'Art supplies set'],
+  },
+  {
+    id: 'gift-6',
+    name: 'Best Friends',
+    relationship: 'friend',
+    occasion: 'Christmas 2025',
+    occasionDate: '2025-12-25',
+    budgeted: 300,
+    spent: 0,
+    ideas: ['Wine & cheese baskets', 'Experience vouchers', 'Photo books'],
+  },
+  {
+    id: 'gift-7',
+    name: 'Wedding - Anna & Mark',
+    relationship: 'friend',
+    occasion: 'Wedding',
+    occasionDate: '2025-07-19',
+    budgeted: 250,
+    spent: 0,
+    ideas: ['Kitchen appliances', 'Cash gift', 'Home decor'],
+  },
+];
+
+// Travel Plans
+export const travelPlans: TravelPlan[] = [
+  {
+    id: 'travel-1',
+    destination: 'Greece (Santorini)',
+    startDate: '2025-08-10',
+    endDate: '2025-08-24',
+    totalBudget: 4500,
+    saved: 1450,
+    expenses: [
+      { category: 'flights', budgeted: 1200, spent: 0 },
+      { category: 'accommodation', budgeted: 1800, spent: 0 },
+      { category: 'food', budgeted: 800, spent: 0 },
+      { category: 'activities', budgeted: 500, spent: 0 },
+      { category: 'transport', budgeted: 200, spent: 0 },
+    ],
+    status: 'planning',
+  },
+  {
+    id: 'travel-2',
+    destination: 'Ski Trip - Austrian Alps',
+    startDate: '2025-02-08',
+    endDate: '2025-02-15',
+    totalBudget: 2800,
+    saved: 2800,
+    expenses: [
+      { category: 'flights', budgeted: 600, spent: 580 },
+      { category: 'accommodation', budgeted: 1200, spent: 1200 },
+      { category: 'food', budgeted: 400, spent: 0 },
+      { category: 'activities', budgeted: 450, spent: 0 },
+      { category: 'transport', budgeted: 150, spent: 120 },
+    ],
+    status: 'booked',
+  },
+];
+
+// Helper functions for new data
+export const getUpcomingBills = (): Bill[] => {
+  return bills
+    .filter((bill) => !bill.isPaid)
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+};
+
+export const getTotalChildExpenses = (childId?: string): number => {
+  const expenses = childId
+    ? childExpenses.filter((e) => e.childId === childId)
+    : childExpenses;
+  return expenses.reduce((sum, expense) => sum + expense.amount, 0);
+};
+
+export const getTotalChildBudget = (childId?: string): number => {
+  const expenses = childId
+    ? childExpenses.filter((e) => e.childId === childId)
+    : childExpenses;
+  return expenses.reduce((sum, expense) => sum + expense.budgeted, 0);
+};
+
+export const getTotalGiftBudget = (): number => {
+  return giftRecipients.reduce((sum, recipient) => sum + recipient.budgeted, 0);
+};
+
+export const getTotalGiftSpent = (): number => {
+  return giftRecipients.reduce((sum, recipient) => sum + recipient.spent, 0);
+};
+
+export const getNextGiftOccasions = (limit: number = 3): GiftRecipient[] => {
+  return giftRecipients
+    .filter((r) => r.spent < r.budgeted)
+    .sort((a, b) => new Date(a.occasionDate).getTime() - new Date(b.occasionDate).getTime())
+    .slice(0, limit);
 };

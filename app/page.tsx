@@ -3,6 +3,10 @@ import { IncomeBreakdown } from '@/components/dashboard/income-breakdown';
 import { BudgetTracker } from '@/components/dashboard/budget-tracker';
 import { SavingsGoals } from '@/components/dashboard/savings-goals';
 import { MonthlyTargets } from '@/components/dashboard/monthly-targets';
+import { UpcomingBills } from '@/components/dashboard/upcoming-bills';
+import { ChildExpenses } from '@/components/dashboard/child-expenses';
+import { GiftBudget } from '@/components/dashboard/gift-budget';
+import { TravelBudget } from '@/components/dashboard/travel-budget';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Wallet } from 'lucide-react';
 
@@ -26,26 +30,48 @@ export default function Home() {
           <AccountSummary />
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 lg:w-auto">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="bills">Bills</TabsTrigger>
               <TabsTrigger value="budget">Budget</TabsTrigger>
+              <TabsTrigger value="family">Family</TabsTrigger>
               <TabsTrigger value="savings">Savings</TabsTrigger>
+              <TabsTrigger value="gifts">Gifts</TabsTrigger>
+              <TabsTrigger value="travel">Travel</TabsTrigger>
               <TabsTrigger value="targets">Targets</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
               <IncomeBreakdown />
-              <div className="grid grid-cols-1 gap-6">
-                <BudgetTracker />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <UpcomingBills />
+                <ChildExpenses />
               </div>
+              <BudgetTracker />
+            </TabsContent>
+
+            <TabsContent value="bills" className="space-y-6">
+              <UpcomingBills />
             </TabsContent>
 
             <TabsContent value="budget" className="space-y-6">
               <BudgetTracker />
             </TabsContent>
 
+            <TabsContent value="family" className="space-y-6">
+              <ChildExpenses />
+            </TabsContent>
+
             <TabsContent value="savings" className="space-y-6">
               <SavingsGoals />
+            </TabsContent>
+
+            <TabsContent value="gifts" className="space-y-6">
+              <GiftBudget />
+            </TabsContent>
+
+            <TabsContent value="travel" className="space-y-6">
+              <TravelBudget />
             </TabsContent>
 
             <TabsContent value="targets" className="space-y-6">

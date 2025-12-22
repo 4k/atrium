@@ -69,3 +69,60 @@ export interface MonthlyTargets {
     distance: number;
   };
 }
+
+export interface Bill {
+  id: string;
+  name: string;
+  amount: number;
+  dueDate: string;
+  category: string;
+  isPaid: boolean;
+  isRecurring: boolean;
+  recurringFrequency?: 'monthly' | 'quarterly' | 'yearly';
+  autopay?: boolean;
+  icon?: string;
+}
+
+export interface Child {
+  id: string;
+  name: string;
+  age: number;
+  avatar: string;
+  color: string;
+}
+
+export interface ChildExpense {
+  id: string;
+  childId: string;
+  category: 'education' | 'activities' | 'clothing' | 'healthcare' | 'toys' | 'food' | 'other';
+  name: string;
+  amount: number;
+  budgeted: number;
+  icon?: string;
+}
+
+export interface GiftRecipient {
+  id: string;
+  name: string;
+  relationship: 'family' | 'friend';
+  occasion: string;
+  occasionDate: string;
+  budgeted: number;
+  spent: number;
+  ideas?: string[];
+}
+
+export interface TravelPlan {
+  id: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  totalBudget: number;
+  saved: number;
+  expenses: {
+    category: 'flights' | 'accommodation' | 'food' | 'activities' | 'transport' | 'other';
+    budgeted: number;
+    spent: number;
+  }[];
+  status: 'planning' | 'booked' | 'completed';
+}
