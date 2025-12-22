@@ -12,6 +12,12 @@ import {
   ChildExpense,
   GiftRecipient,
   TravelPlan,
+  Pocket,
+  ContributionConfig,
+  MonthlyContribution,
+  PersonalAllowance,
+  SinkingFund,
+  CoupleScorecard,
 } from './types';
 
 export const people: Person[] = [
@@ -613,4 +619,326 @@ export const getNextGiftOccasions = (limit: number = 3): GiftRecipient[] => {
     .filter((r) => r.spent < r.budgeted)
     .sort((a, b) => new Date(a.occasionDate).getTime() - new Date(b.occasionDate).getTime())
     .slice(0, limit);
+};
+
+// ============================================
+// REVOLUT POCKETS
+// ============================================
+
+export const pockets: Pocket[] = [
+  {
+    id: 'pocket-bills',
+    name: 'Bills',
+    type: 'bills',
+    icon: '📋',
+    currentBalance: 1850.00,
+    monthlyAllocation: 1700,
+    spentThisMonth: 1465,
+    color: 'bg-slate-500',
+  },
+  {
+    id: 'pocket-groceries',
+    name: 'Groceries',
+    type: 'groceries',
+    icon: '🛒',
+    currentBalance: 285.50,
+    monthlyAllocation: 450,
+    spentThisMonth: 428,
+    color: 'bg-green-500',
+  },
+  {
+    id: 'pocket-emergency',
+    name: 'Emergency Fund',
+    type: 'emergency',
+    icon: '🛡️',
+    currentBalance: 9200,
+    monthlyAllocation: 400,
+    spentThisMonth: 0,
+    targetAmount: 15000,
+    color: 'bg-red-500',
+  },
+  {
+    id: 'pocket-vacation',
+    name: 'Vacation Fund',
+    type: 'vacation',
+    icon: '✈️',
+    currentBalance: 1450,
+    monthlyAllocation: 300,
+    spentThisMonth: 0,
+    targetAmount: 3000,
+    targetDate: '2025-08-01',
+    color: 'bg-blue-500',
+  },
+  {
+    id: 'pocket-investment',
+    name: 'Investment',
+    type: 'investment',
+    icon: '📈',
+    currentBalance: 500,
+    monthlyAllocation: 500,
+    spentThisMonth: 0,
+    color: 'bg-purple-500',
+  },
+  {
+    id: 'pocket-home-repairs',
+    name: 'Home Repairs',
+    type: 'sinking',
+    icon: '🔧',
+    currentBalance: 680,
+    monthlyAllocation: 150,
+    spentThisMonth: 0,
+    targetAmount: 1800,
+    targetDate: '2025-12-31',
+    color: 'bg-orange-500',
+  },
+];
+
+// ============================================
+// CONTRIBUTION CONFIGURATION
+// ============================================
+
+export const contributionConfig: ContributionConfig[] = [
+  {
+    personId: 'tony',
+    expectedPercentage: 64, // Tony earns ~64% of household income
+  },
+  {
+    personId: 'tatsiana',
+    expectedPercentage: 36, // Tatsiana earns ~36% of household income
+  },
+];
+
+export const monthlyContributions: MonthlyContribution[] = [
+  // December 2024
+  {
+    month: '2024-12',
+    personId: 'tony',
+    expectedAmount: 3200,
+    actualAmount: 3200,
+    paidDate: '2024-12-05',
+  },
+  {
+    month: '2024-12',
+    personId: 'tatsiana',
+    expectedAmount: 1800,
+    actualAmount: 1800,
+    paidDate: '2024-12-05',
+  },
+  // November 2024
+  {
+    month: '2024-11',
+    personId: 'tony',
+    expectedAmount: 3200,
+    actualAmount: 3400,
+    paidDate: '2024-11-05',
+  },
+  {
+    month: '2024-11',
+    personId: 'tatsiana',
+    expectedAmount: 1800,
+    actualAmount: 1600,
+    paidDate: '2024-11-05',
+  },
+  // October 2024
+  {
+    month: '2024-10',
+    personId: 'tony',
+    expectedAmount: 3200,
+    actualAmount: 2900,
+    paidDate: '2024-10-05',
+  },
+  {
+    month: '2024-10',
+    personId: 'tatsiana',
+    expectedAmount: 1800,
+    actualAmount: 2100,
+    paidDate: '2024-10-05',
+  },
+];
+
+// ============================================
+// PERSONAL ALLOWANCES
+// ============================================
+
+export const personalAllowances: PersonalAllowance[] = [
+  {
+    personId: 'tony',
+    monthlyAmount: 200,
+    currentMonthSpent: 145.50,
+    carryoverFromLastMonth: 0, // Started fresh
+    lastUpdated: '2024-12-20',
+  },
+  {
+    personId: 'tatsiana',
+    monthlyAmount: 200,
+    currentMonthSpent: 223.80,
+    carryoverFromLastMonth: 50, // Had €50 left from last month
+    lastUpdated: '2024-12-20',
+  },
+];
+
+// ============================================
+// SINKING FUNDS
+// ============================================
+
+export const sinkingFunds: SinkingFund[] = [
+  {
+    id: 'sf-car-insurance',
+    name: 'Car Insurance',
+    icon: '🚗',
+    targetAmount: 840,
+    currentAmount: 560,
+    dueDate: '2025-04-01',
+    frequency: 'annual',
+    category: 'insurance',
+    monthlyContribution: 70,
+    isUnderfunded: false,
+  },
+  {
+    id: 'sf-christmas',
+    name: 'Christmas & Holidays',
+    icon: '🎄',
+    targetAmount: 1200,
+    currentAmount: 1200,
+    dueDate: '2025-12-01',
+    frequency: 'annual',
+    category: 'holiday',
+    monthlyContribution: 100,
+    isUnderfunded: false,
+  },
+  {
+    id: 'sf-medical',
+    name: 'Medical & Dental',
+    icon: '🏥',
+    targetAmount: 600,
+    currentAmount: 280,
+    dueDate: '2025-06-30',
+    frequency: 'annual',
+    category: 'medical',
+    monthlyContribution: 50,
+    isUnderfunded: true, // Should have more by now
+  },
+  {
+    id: 'sf-property-tax',
+    name: 'Property Tax',
+    icon: '🏠',
+    targetAmount: 480,
+    currentAmount: 400,
+    dueDate: '2025-03-15',
+    frequency: 'annual',
+    category: 'home',
+    monthlyContribution: 40,
+    isUnderfunded: false,
+  },
+  {
+    id: 'sf-appliances',
+    name: 'Appliance Replacement',
+    icon: '🔌',
+    targetAmount: 1000,
+    currentAmount: 350,
+    dueDate: '2025-12-31',
+    frequency: 'annual',
+    category: 'home',
+    monthlyContribution: 85,
+    isUnderfunded: false,
+  },
+  {
+    id: 'sf-sofia-birthday',
+    name: "Sofia's Birthday Party",
+    icon: '🎂',
+    targetAmount: 400,
+    currentAmount: 160,
+    dueDate: '2025-05-15',
+    frequency: 'annual',
+    category: 'other',
+    monthlyContribution: 50,
+    isUnderfunded: false,
+  },
+];
+
+// ============================================
+// COUPLE SCORECARD
+// ============================================
+
+export const getCoupleScorecard = (): CoupleScorecard => {
+  const totalIncome = getTotalIncome();
+  const totalExpenses = getTotalExpenses();
+  const savingsRate = Math.round(((totalIncome - totalExpenses) / totalIncome) * 100);
+  const savingsRateTarget = 25;
+  
+  // Calculate days until next paycheck (assume 5th of month)
+  const now = new Date();
+  const nextPayday = new Date(now.getFullYear(), now.getMonth() + (now.getDate() > 5 ? 1 : 0), 5);
+  const daysUntilNextPaycheck = Math.ceil((nextPayday.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Calculate remaining budget for the month
+  const totalBudgeted = getTotalBudgeted();
+  const remainingBudget = totalBudgeted - totalExpenses;
+  
+  // Calculate runway (how many days of average daily expenses the account can cover)
+  const avgDailyExpenses = totalExpenses / 30;
+  const jointAccountRunway = Math.floor(accountBalance.current / avgDailyExpenses);
+  
+  // Determine if on track
+  const isOnTrack = savingsRate >= savingsRateTarget && remainingBudget >= 0;
+  
+  let onTrackExplanation: string;
+  if (isOnTrack) {
+    onTrackExplanation = `Great job! Saving ${savingsRate}% of income (target: ${savingsRateTarget}%). €${remainingBudget.toFixed(0)} budget remaining.`;
+  } else if (savingsRate < savingsRateTarget) {
+    onTrackExplanation = `Savings rate is ${savingsRate}%, below the ${savingsRateTarget}% target. Consider reducing discretionary spending.`;
+  } else {
+    onTrackExplanation = `Over budget by €${Math.abs(remainingBudget).toFixed(0)}. Review recent expenses.`;
+  }
+  
+  return {
+    isOnTrack,
+    onTrackExplanation,
+    savingsRate,
+    savingsRateTarget,
+    daysUntilNextPaycheck,
+    remainingBudget,
+    jointAccountRunway,
+  };
+};
+
+// ============================================
+// HELPER FUNCTIONS FOR NEW DATA
+// ============================================
+
+export const getPocketById = (id: string): Pocket | undefined => {
+  return pockets.find((p) => p.id === id);
+};
+
+export const getTotalPocketBalance = (): number => {
+  return pockets.reduce((sum, p) => sum + p.currentBalance, 0);
+};
+
+export const getTotalPocketAllocations = (): number => {
+  return pockets.reduce((sum, p) => sum + p.monthlyAllocation, 0);
+};
+
+export const getContributionBalance = (personId: string): number => {
+  const contributions = monthlyContributions.filter((c) => c.personId === personId);
+  return contributions.reduce((sum, c) => sum + (c.actualAmount - c.expectedAmount), 0);
+};
+
+export const getCurrentMonthContributions = (): MonthlyContribution[] => {
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  return monthlyContributions.filter((c) => c.month === currentMonth);
+};
+
+export const getPersonAllowance = (personId: string): PersonalAllowance | undefined => {
+  return personalAllowances.find((a) => a.personId === personId);
+};
+
+export const getUpcomingSinkingFunds = (limit?: number): SinkingFund[] => {
+  const sorted = [...sinkingFunds].sort(
+    (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+  );
+  return limit ? sorted.slice(0, limit) : sorted;
+};
+
+export const getUnderfundedSinkingFunds = (): SinkingFund[] => {
+  return sinkingFunds.filter((sf) => sf.isUnderfunded);
 };

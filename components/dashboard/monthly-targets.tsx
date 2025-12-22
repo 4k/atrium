@@ -113,7 +113,7 @@ export function MonthlyTargets() {
               <XAxis dataKey="month" className="text-xs" />
               <YAxis className="text-xs" />
               <Tooltip
-                formatter={(value: number) => formatCurrency(value)}
+                formatter={(value) => formatCurrency(Number(value) || 0)}
                 contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
                   border: '1px solid hsl(var(--border))',

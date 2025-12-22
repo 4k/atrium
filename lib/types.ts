@@ -126,3 +126,82 @@ export interface TravelPlan {
   }[];
   status: 'planning' | 'booked' | 'completed';
 }
+
+// Revolut Pockets
+export type PocketType = 'bills' | 'groceries' | 'emergency' | 'vacation' | 'investment' | 'sinking';
+
+export interface Pocket {
+  id: string;
+  name: string;
+  type: PocketType;
+  icon: string;
+  currentBalance: number;
+  monthlyAllocation: number;
+  spentThisMonth: number;
+  targetAmount?: number; // For savings pockets
+  targetDate?: string; // For goal-based pockets
+  color: string;
+}
+
+// Proportional Contribution Tracking
+export interface ContributionConfig {
+  personId: string;
+  expectedPercentage: number; // Based on income ratio
+  fixedContribution?: number; // Optional fixed amount override
+}
+
+export interface MonthlyContribution {
+  month: string;
+  personId: string;
+  expectedAmount: number;
+  actualAmount: number;
+  paidDate?: string;
+}
+
+// Personal Allowance System
+export interface PersonalAllowance {
+  personId: string;
+  monthlyAmount: number;
+  currentMonthSpent: number;
+  carryoverFromLastMonth: number; // Negative means borrowed
+  lastUpdated: string;
+}
+
+// Sinking Funds
+export interface SinkingFund {
+  id: string;
+  name: string;
+  icon: string;
+  targetAmount: number;
+  currentAmount: number;
+  dueDate: string;
+  frequency: 'annual' | 'quarterly' | 'one-time';
+  category: 'insurance' | 'medical' | 'car' | 'home' | 'holiday' | 'education' | 'other';
+  monthlyContribution: number;
+  isUnderfunded: boolean;
+}
+
+// Money Flow for Sankey/Waterfall
+export interface MoneyFlowNode {
+  id: string;
+  name: string;
+  type: 'income' | 'split' | 'expense' | 'savings';
+  personId?: string;
+}
+
+export interface MoneyFlowLink {
+  source: string;
+  target: string;
+  value: number;
+}
+
+// Couple Scorecard
+export interface CoupleScorecard {
+  isOnTrack: boolean;
+  onTrackExplanation: string;
+  savingsRate: number;
+  savingsRateTarget: number;
+  daysUntilNextPaycheck: number;
+  remainingBudget: number;
+  jointAccountRunway: number; // Days of expenses covered
+}

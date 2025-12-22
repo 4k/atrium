@@ -1,3 +1,4 @@
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getUpcomingBills } from '@/lib/mock-data';
@@ -23,7 +24,7 @@ export function UpcomingBills() {
     return 'text-green-600 dark:text-green-400';
   };
 
-  const getDueDateBadge = (daysUntil: number): JSX.Element => {
+  const getDueDateBadge = (daysUntil: number): React.ReactNode => {
     if (daysUntil < 0) {
       return <Badge variant="destructive">Overdue</Badge>;
     }
