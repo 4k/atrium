@@ -37,10 +37,12 @@ export async function updateSession(request: NextRequest) {
 
   // Protected routes
   const protectedPaths = ['/', '/dashboard']
+  const setupPaths = ['/setup']
   const authPaths = ['/login', '/signup']
   const isProtectedPath = protectedPaths.some(path =>
     request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(path + '/')
   )
+  const isSetupPath = setupPaths.some(path => request.nextUrl.pathname.startsWith(path))
   const isAuthPath = authPaths.some(path => request.nextUrl.pathname.startsWith(path))
 
   // Redirect to login if accessing protected route without authentication
@@ -51,10 +53,18 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirect to home if accessing auth pages while authenticated
+  // Redirect to login if accessing setup route without authentication
+  if (isSetupPath && !user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  // Redirect to setup if accessing auth pages while authenticated
+  // (Setup page will redirect to home if user already has a household)
   if (isAuthPath && user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/'
+    url.pathname = '/setup'
     return NextResponse.redirect(url)
   }
 
