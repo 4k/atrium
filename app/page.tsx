@@ -35,8 +35,9 @@ export default async function Home() {
   // Fetch household for authenticated user
   const household = await getUserHousehold();
 
+  // If user doesn't have a household, redirect to setup
   if (!household) {
-    redirect('/login');
+    redirect('/setup');
   }
 
   const householdId = household.id;

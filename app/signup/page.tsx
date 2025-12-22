@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,6 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [householdName, setHouseholdName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -48,7 +46,6 @@ export default function SignupPage() {
         body: JSON.stringify({
           email,
           password,
-          householdName: householdName || 'My Household',
         }),
       });
 
@@ -129,18 +126,6 @@ export default function SignupPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="householdName">Household Name</Label>
-                <Input
-                  id="householdName"
-                  type="text"
-                  placeholder="The Smith Family"
-                  value={householdName}
-                  onChange={(e) => setHouseholdName(e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
@@ -197,6 +182,11 @@ export default function SignupPage() {
             </form>
           </CardContent>
         </Card>
+
+        <div className="mt-4 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+          <p className="font-medium mb-1">After signup:</p>
+          <p>You'll be able to create a new household or join an existing one.</p>
+        </div>
       </div>
     </div>
   );
