@@ -1,14 +1,66 @@
+'use client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { PersonBadge, SharedBadge } from './person-badge';
-import { budgetCategories, people } from '@/lib/mock-data';
 import { formatCurrency, calculateProgress, getBudgetStatus, cn } from '@/lib/utils';
 import { AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/database.types';
 
-export function BudgetTracker() {
-  const sharedCategories = budgetCategories.filter((cat) => cat.personId === 'shared');
-  const tonyCategories = budgetCategories.filter((cat) => cat.personId === 'tony');
-  const tatsianaCategories = budgetCategories.filter((cat) => cat.personId === 'tatsiana');
+type BudgetCategory = Database['public']['Tables']['budget_categories']['Row'] & {
+  person?: Database['public']['Tables']['persons']['Row'] | null;
+};
+
+export function BudgetTracker({ householdId }: { householdId: string }) {
+  const [categories, setCategories] = useState<BudgetCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchBudget() {
+      const supabase = createClient();
+      const now = new Date();
+      const monthStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+
+      const { data, error } = await supabase
+        .from('budget_categories')
+        .select('*, person:persons(*)')
+        .eq('household_id', householdId)
+        .eq('month', monthStr)
+        .order('created_at');
+
+      if (error) {
+        console.error('Error fetching budget categories:', error);
+        setLoading(false);
+        return;
+      }
+
+      setCategories(data || []);
+      setLoading(false);
+    }
+
+    fetchBudget();
+  }, [householdId]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Budget Categories</CardTitle>
+          <CardDescription>Track spending by category</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Loading budget...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const sharedCategories = categories.filter((cat) => cat.person_id === null);
+  const personalCategories = categories.filter((cat) => cat.person_id !== null);
 
   const StatusIcon = ({ status }: { status: 'under' | 'near' | 'over' }) => {
     switch (status) {
@@ -32,23 +84,22 @@ export function BudgetTracker() {
     }
   };
 
-  const CategoryRow = ({ category }: { category: typeof budgetCategories[0] }) => {
+  const CategoryRow = ({ category }: { category: BudgetCategory }) => {
     const progress = calculateProgress(category.spent, category.budgeted);
     const status = getBudgetStatus(category.spent, category.budgeted);
-    const person = people.find((p) => p.id === category.personId);
 
     return (
       <div className="space-y-2 p-4 rounded-lg bg-muted/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{category.icon}</span>
+            <span className="text-2xl">{category.icon || '💰'}</span>
             <div>
               <div className="flex items-center gap-2">
                 <h4 className="font-medium">{category.name}</h4>
                 <StatusIcon status={status} />
               </div>
               <div className="flex items-center gap-2 mt-1">
-                {person ? <PersonBadge person={person} showName={false} size="sm" /> : <SharedBadge />}
+                {category.person ? <PersonBadge person={category.person} showName={false} size="sm" /> : <SharedBadge />}
               </div>
             </div>
           </div>
@@ -81,43 +132,36 @@ export function BudgetTracker() {
         <CardDescription>Track spending by category and person</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div>
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <SharedBadge />
-            Shared Expenses
-          </h3>
-          <div className="space-y-3">
-            {sharedCategories.map((category) => (
-              <CategoryRow key={category.id} category={category} />
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {sharedCategories.length > 0 && (
           <div>
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <PersonBadge person={people.find((p) => p.id === 'tony')!} showName={false} size="sm" />
-              Tony's Personal
+              <SharedBadge />
+              Shared Expenses
             </h3>
             <div className="space-y-3">
-              {tonyCategories.map((category) => (
+              {sharedCategories.map((category) => (
                 <CategoryRow key={category.id} category={category} />
               ))}
             </div>
           </div>
+        )}
 
+        {personalCategories.length > 0 && (
           <div>
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <PersonBadge person={people.find((p) => p.id === 'tatsiana')!} showName={false} size="sm" />
-              Tatsiana's Personal
-            </h3>
+            <h3 className="text-lg font-semibold mb-4">Personal Expenses</h3>
             <div className="space-y-3">
-              {tatsianaCategories.map((category) => (
+              {personalCategories.map((category) => (
                 <CategoryRow key={category.id} category={category} />
               ))}
             </div>
           </div>
-        </div>
+        )}
+
+        {categories.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>No budget categories for this month</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

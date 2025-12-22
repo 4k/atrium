@@ -1,6 +1,6 @@
 # Family Budget Dashboard
 
-A modern, responsive family budget tracking dashboard built with Next.js 15, TypeScript, Shadcn/UI, and Tailwind CSS.
+A modern, responsive family budget tracking dashboard built with Next.js 16, TypeScript, Shadcn/UI, Tailwind CSS, and Supabase.
 
 ## Features
 
@@ -47,9 +47,10 @@ A modern, responsive family budget tracking dashboard built with Next.js 15, Typ
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS
+- **Backend**: Supabase (PostgreSQL + Real-time)
+- **Styling**: Tailwind CSS 4
 - **UI Components**: Shadcn/UI
 - **Charts**: Recharts
 - **Icons**: Lucide React
@@ -59,30 +60,25 @@ A modern, responsive family budget tracking dashboard built with Next.js 15, Typ
 ### Prerequisites
 
 - Node.js 18+ and npm/pnpm/yarn
+- A Supabase account (free tier works)
 
-### Installation
+### Quick Start
 
-1. Install dependencies:
+**With Supabase Backend** (Recommended):
 
-```bash
-npm install
-# or
-pnpm install
-# or
-yarn install
-```
+1. Follow the [5-minute Quick Start guide](QUICKSTART.md) to set up Supabase
+2. Install dependencies: `npm install`
+3. Configure environment: `cp .env.local.example .env.local` (add your Supabase credentials)
+4. Run the dev server: `npm run dev`
+5. Open [http://localhost:3000](http://localhost:3000)
 
-2. Run the development server:
+**With Mock Data** (Demo only):
 
-```bash
-npm run dev
-# or
-pnpm dev
-# or
-yarn dev
-```
+1. Install dependencies: `npm install`
+2. Run the dev server: `npm run dev`
+3. Open [http://localhost:3000](http://localhost:3000)
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
+> **Note**: The dashboard is ready for Supabase integration. See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for comprehensive setup instructions.
 
 ## Project Structure
 
@@ -92,7 +88,7 @@ yarn dev
 │   ├── page.tsx            # Main dashboard page with 8 tabs
 │   └── globals.css         # Global styles with dark mode
 ├── components/
-│   ├── dashboard/
+│   ├── dashboard/          # 17 feature-rich dashboard components
 │   │   ├── account-summary.tsx      # Account overview card
 │   │   ├── income-breakdown.tsx     # Income by person with pie chart
 │   │   ├── budget-tracker.tsx       # Budget categories with progress bars
@@ -105,9 +101,22 @@ yarn dev
 │   │   └── person-badge.tsx         # Reusable person avatar component
 │   └── ui/                 # Shadcn UI components
 ├── lib/
-│   ├── types.ts            # TypeScript interfaces
-│   ├── mock-data.ts        # Sample data (bills, travel, gifts, etc.)
-│   └── utils.ts            # Utility functions
+│   ├── supabase/          # Supabase backend integration
+│   │   ├── client.ts      # Browser client for client components
+│   │   ├── server.ts      # Server client for Server Components
+│   │   ├── database.types.ts  # Generated TypeScript types
+│   │   ├── queries.ts     # Read operations (42 functions)
+│   │   └── mutations.ts   # Write operations (35 functions)
+│   ├── types.ts           # TypeScript interfaces
+│   ├── mock-data.ts       # Sample data (for demo/development)
+│   └── utils.ts           # Utility functions
+├── supabase/
+│   ├── migrations/        # Database schema migrations
+│   │   └── 20250101000000_initial_schema.sql
+│   └── seed.sql          # Sample data for development
+├── QUICKSTART.md         # 5-minute Supabase setup guide
+├── SUPABASE_SETUP.md     # Comprehensive setup documentation
+├── IMPLEMENTATION_STATUS.md  # Implementation progress tracker
 └── package.json
 ```
 
@@ -135,12 +144,32 @@ The dashboard currently uses mock data for demonstration purposes. The data incl
   - Greece/Santorini (€4,500 budget, Aug 2025)
   - Austrian Alps Ski Trip (€2,800 budget, Feb 2025)
 
-## Next Steps
+## Supabase Backend
 
-- [ ] Integrate Supabase for real data persistence
-- [ ] Add Open Banking integration for Revolut sync
-- [ ] Implement user authentication
+This project includes a complete Supabase backend integration:
+
+- **15 Database Tables**: Households, persons, income sources, pockets, transactions, contributions, personal allowances, savings goals, budget categories, bills, children, child expenses, sinking funds, gift recipients, travel plans
+- **42 Query Functions**: Type-safe read operations for all data
+- **35 Mutation Functions**: Create, update, and delete operations
+- **Automatic Balance Updates**: Database triggers keep pocket balances in sync
+- **Row Level Security**: Ready for multi-user authentication
+- **Comprehensive Documentation**: See [QUICKSTART.md](QUICKSTART.md) and [SUPABASE_SETUP.md](SUPABASE_SETUP.md)
+
+### Implementation Status
+
+- ✅ Backend infrastructure complete (Supabase client, schema, queries, mutations)
+- ✅ Database schema with 15 tables
+- ✅ Seed data with 3 months of sample transactions
+- ✅ TypeScript types generated from schema
+- 🚧 Frontend components migration (in progress - see [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md))
+
+## Roadmap
+
+- [ ] Complete component migration to Supabase (17 components)
+- [ ] Add user authentication with Supabase Auth
+- [ ] Implement real-time updates with Supabase subscriptions
 - [ ] Add transaction history view
+- [ ] Add Open Banking integration for Revolut sync
 - [ ] Create mobile app version
 - [ ] Add export functionality (PDF, CSV)
 

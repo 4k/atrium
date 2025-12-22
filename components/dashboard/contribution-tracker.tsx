@@ -4,48 +4,141 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { PersonBadge } from './person-badge';
-import { 
-  people, 
-  contributionConfig, 
-  monthlyContributions, 
-  getPersonIncome, 
-  getTotalIncome,
-  getContributionBalance 
-} from '@/lib/mock-data';
 import { formatCurrency, cn } from '@/lib/utils';
 import { Scale, TrendingUp, TrendingDown, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/database.types';
 
-export function ContributionTracker() {
-  const totalIncome = getTotalIncome();
-  const currentMonth = '2024-12'; // In production, use actual current month
-  
-  // Get current month contributions
-  const currentContributions = monthlyContributions.filter((c) => c.month === currentMonth);
+type Person = Database['public']['Tables']['persons']['Row'];
+type Contribution = Database['public']['Tables']['contributions']['Row'];
+type IncomeSource = Database['public']['Tables']['income_sources']['Row'];
 
-  // Calculate income ratios and contribution data for each person
-  const contributionData = people.map((person) => {
-    const personIncome = getPersonIncome(person.id);
-    const incomePercentage = Math.round((personIncome / totalIncome) * 100);
-    
-    const config = contributionConfig.find((c) => c.personId === person.id);
-    const expectedPercentage = config?.expectedPercentage || incomePercentage;
-    
-    const contribution = currentContributions.find((c) => c.personId === person.id);
-    const expectedAmount = contribution?.expectedAmount || 0;
-    const actualAmount = contribution?.actualAmount || 0;
-    
+interface PersonWithData extends Person {
+  contributions: Contribution[];
+  incomeSources: IncomeSource[];
+  monthlyIncome: number;
+}
+
+export function ContributionTracker({ householdId }: { householdId: string }) {
+  const [personsData, setPersonsData] = useState<PersonWithData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      const supabase = createClient();
+
+      // Get current month in YYYY-MM format
+      const currentMonth = new Date().toISOString().slice(0, 7);
+
+      // Fetch persons
+      const { data: persons, error: personsError } = await supabase
+        .from('persons')
+        .select('*')
+        .eq('household_id', householdId)
+        .order('created_at');
+
+      if (personsError || !persons) {
+        console.error('Error fetching persons:', personsError);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch data for each person
+      const personsWithData = await Promise.all(
+        persons.map(async (person) => {
+          // Fetch income sources
+          const { data: incomeSources, error: incomeError } = await supabase
+            .from('income_sources')
+            .select('*')
+            .eq('person_id', person.id)
+            .eq('is_active', true);
+
+          if (incomeError) {
+            console.error('Error fetching income sources:', incomeError);
+          }
+
+          // Calculate monthly income
+          const monthlyIncome = (incomeSources || []).reduce((sum, source) => {
+            if (source.frequency === 'monthly') return sum + source.amount;
+            if (source.frequency === 'weekly') return sum + (source.amount * 52 / 12);
+            return sum;
+          }, 0);
+
+          // Fetch contributions for current month
+          const { data: contributions, error: contribError } = await supabase
+            .from('contributions')
+            .select('*')
+            .eq('person_id', person.id)
+            .eq('month', currentMonth);
+
+          if (contribError) {
+            console.error('Error fetching contributions:', contribError);
+          }
+
+          return {
+            ...person,
+            contributions: contributions || [],
+            incomeSources: incomeSources || [],
+            monthlyIncome,
+          };
+        })
+      );
+
+      setPersonsData(personsWithData);
+      setLoading(false);
+    }
+
+    fetchData();
+  }, [householdId]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Scale className="h-5 w-5" />
+            Proportional Contributions
+          </CardTitle>
+          <CardDescription>
+            Fair share contributions based on income ratio
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Loading contribution data...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const totalIncome = personsData.reduce((sum, p) => sum + p.monthlyIncome, 0);
+
+  // Calculate contribution data for each person
+  const contributionData = personsData.map((person) => {
+    const incomePercentage = totalIncome > 0 ? Math.round((person.monthlyIncome / totalIncome) * 100) : 0;
+
+    // Get current month's contribution
+    const contribution = person.contributions[0];
+    const expectedAmount = contribution?.expected_amount || 0;
+    const actualAmount = contribution?.actual_amount || 0;
+
     const difference = actualAmount - expectedAmount;
-    const contributionBalance = getContributionBalance(person.id);
-    
-    const progressPercentage = expectedAmount > 0 
+
+    // Calculate running balance from all contributions
+    const contributionBalance = person.contributions.reduce((sum, c) =>
+      sum + (c.actual_amount - c.expected_amount), 0
+    );
+
+    const progressPercentage = expectedAmount > 0
       ? Math.round((actualAmount / expectedAmount) * 100)
       : 0;
 
     return {
       person,
-      personIncome,
+      monthlyIncome: person.monthlyIncome,
       incomePercentage,
-      expectedPercentage,
       expectedAmount,
       actualAmount,
       difference,
@@ -130,10 +223,10 @@ export function ContributionTracker() {
               <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Monthly Income</p>
-                  <p className="font-semibold">{formatCurrency(data.personIncome)}</p>
+                  <p className="font-semibold">{formatCurrency(data.monthlyIncome)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-muted-foreground">Fair Share ({data.expectedPercentage}%)</p>
+                  <p className="text-muted-foreground">Fair Share ({data.incomePercentage}%)</p>
                   <p className="font-semibold">{formatCurrency(data.expectedAmount)}</p>
                 </div>
               </div>
@@ -145,8 +238,8 @@ export function ContributionTracker() {
                     {formatCurrency(data.actualAmount)} / {formatCurrency(data.expectedAmount)}
                   </span>
                 </div>
-                <Progress 
-                  value={Math.min(data.progressPercentage, 100)} 
+                <Progress
+                  value={Math.min(data.progressPercentage, 100)}
                   className={cn(
                     'h-3',
                     data.progressPercentage > 100 && '[&>div]:bg-blue-500',
@@ -167,7 +260,7 @@ export function ContributionTracker() {
               </div>
 
               {/* Variable Income Note for Tony */}
-              {data.person.id === 'tony' && (
+              {data.person.name.toLowerCase().includes('tony') && (
                 <div className="mt-3 flex items-start gap-2 p-2 rounded-md bg-blue-50 dark:bg-blue-950/50 text-xs">
                   <AlertCircle className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
                   <p className="text-blue-700 dark:text-blue-300">

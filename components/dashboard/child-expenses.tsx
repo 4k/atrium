@@ -3,15 +3,99 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { children, childExpenses, getTotalChildExpenses, getTotalChildBudget } from '@/lib/mock-data';
 import { formatCurrency, calculateProgress, cn } from '@/lib/utils';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/database.types';
 
-export function ChildExpenses() {
-  const child = children[0];
-  const expenses = childExpenses.filter((e) => e.childId === child.id);
-  const totalSpent = getTotalChildExpenses(child.id);
-  const totalBudget = getTotalChildBudget(child.id);
+type Child = Database['public']['Tables']['children']['Row'];
+type ChildExpense = Database['public']['Tables']['child_expenses']['Row'];
+
+interface ChildWithExpenses extends Child {
+  expenses: ChildExpense[];
+}
+
+export function ChildExpenses({ householdId }: { householdId: string }) {
+  const [childData, setChildData] = useState<ChildWithExpenses | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      const supabase = createClient();
+
+      // Fetch children for this household
+      const { data: children, error: childrenError } = await supabase
+        .from('children')
+        .select('*')
+        .eq('household_id', householdId)
+        .limit(1)
+        .single();
+
+      if (childrenError || !children) {
+        console.error('Error fetching children:', childrenError);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch expenses for this child
+      const { data: expenses, error: expensesError } = await supabase
+        .from('child_expenses')
+        .select('*')
+        .eq('child_id', children.id);
+
+      if (expensesError) {
+        console.error('Error fetching child expenses:', expensesError);
+        setLoading(false);
+        return;
+      }
+
+      setChildData({
+        ...children,
+        expenses: expenses || [],
+      });
+      setLoading(false);
+    }
+
+    fetchData();
+  }, [householdId]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Child Expenses</CardTitle>
+          <CardDescription>Monthly budget tracking</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Loading child expenses...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!childData) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Child Expenses</CardTitle>
+          <CardDescription>Monthly budget tracking</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            <p>No child data available</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const child = childData;
+  const expenses = childData.expenses;
+  const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalBudget = expenses.reduce((sum, e) => sum + e.budgeted, 0);
   const overallProgress = calculateProgress(totalSpent, totalBudget);
 
   const categoryColors: Record<string, string> = {
