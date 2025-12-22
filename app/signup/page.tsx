@@ -39,30 +39,24 @@ export default function SignupPage() {
     }
 
     try {
-      const supabase = createClient();
-
-      // First, create the household
-      const { data: household, error: householdError } = await supabase
-        .from('households')
-        .insert({ name: householdName || 'My Household' })
-        .select()
-        .single();
-
-      if (householdError) throw householdError;
-
-      // Sign up the user with household_id in metadata
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            household_id: household.id,
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+      // Call the API route to handle signup server-side
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          email,
+          password,
+          householdName: householdName || 'My Household',
+        }),
       });
 
-      if (signUpError) throw signUpError;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Signup failed');
+      }
 
       setSuccess(true);
       setTimeout(() => {
