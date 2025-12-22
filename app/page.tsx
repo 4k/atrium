@@ -19,16 +19,21 @@ import { Wallet } from 'lucide-react';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <main className="min-h-screen bg-background">
+      {/* Subtle gradient overlay for visual interest */}
+      <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+      
+      <div className="relative container mx-auto px-4 py-8 max-w-7xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <Wallet className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-50">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-accent/80">
+              <Wallet className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
               Family Budget Dashboard
             </h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Tony & Tatsiana's Financial Overview
           </p>
         </div>

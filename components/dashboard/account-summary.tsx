@@ -16,49 +16,55 @@ export function AccountSummary() {
       label: 'Total Income',
       value: formatCurrency(totalIncome),
       icon: TrendingUp,
-      color: 'text-green-600 dark:text-green-400',
-      bgColor: 'bg-green-50 dark:bg-green-950',
+      color: 'text-emerald-500',
+      bgColor: 'bg-emerald-500/10 dark:bg-emerald-500/20',
     },
     {
       label: 'Total Expenses',
       value: formatCurrency(totalExpenses),
       icon: TrendingDown,
-      color: 'text-red-600 dark:text-red-400',
-      bgColor: 'bg-red-50 dark:bg-red-950',
+      color: 'text-rose-500',
+      bgColor: 'bg-rose-500/10 dark:bg-rose-500/20',
     },
     {
       label: 'Net Savings',
       value: formatCurrency(netSavings),
       icon: PiggyBank,
-      color: 'text-blue-600 dark:text-blue-400',
-      bgColor: 'bg-blue-50 dark:bg-blue-950',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10 dark:bg-primary/20',
     },
   ];
 
   return (
     <div className="space-y-4">
-      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
-        <CardHeader>
+      <Card className="relative overflow-hidden border-primary/20">
+        {/* Gradient background effect */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        
+        <CardHeader className="relative">
           <div className="flex items-start justify-between">
             <div>
-              <CardDescription className="text-blue-700 dark:text-blue-300 font-medium">
+              <CardDescription className="text-primary font-medium text-sm">
                 Revolut Shared Account
               </CardDescription>
-              <CardTitle className="text-4xl font-bold mt-2 text-blue-900 dark:text-blue-100">
+              <CardTitle className="text-4xl font-bold mt-2 tracking-tight">
                 {formatCurrency(accountBalance.current)}
               </CardTitle>
             </div>
-            <Wallet className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            <div className="p-3 rounded-xl bg-primary/10 dark:bg-primary/20">
+              <Wallet className="h-6 w-6 text-primary" />
+            </div>
           </div>
 
           <div className="flex items-center gap-4 mt-4">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               {balanceChange >= 0 ? (
-                <ArrowUpRight className="h-4 w-4 text-green-600" />
+                <ArrowUpRight className="h-4 w-4 text-emerald-500" />
               ) : (
-                <ArrowDownRight className="h-4 w-4 text-red-600" />
+                <ArrowDownRight className="h-4 w-4 text-rose-500" />
               )}
-              <span className={`text-sm font-semibold ${balanceChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <span className={`text-sm font-semibold ${balanceChange >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                 {formatCurrency(Math.abs(balanceChange))} ({changePercentage}%)
               </span>
               <span className="text-sm text-muted-foreground">vs last month</span>
@@ -66,23 +72,23 @@ export function AccountSummary() {
           </div>
 
           <div className="mt-3">
-            <Badge variant="outline" className="bg-white/50 dark:bg-black/20">
+            <Badge variant="outline" className="bg-secondary/50 border-border/50 text-muted-foreground text-xs">
               Last synced: {formatRelativeTime(accountBalance.lastSynced)}
             </Badge>
           </div>
         </CardHeader>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="p-6">
+          <Card key={stat.label} className="border-border/50">
+            <CardContent className="p-5">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                  <p className="text-2xl font-bold mt-2">{stat.value}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
+                  <p className="text-2xl font-bold mt-1.5 tracking-tight">{stat.value}</p>
                 </div>
-                <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+                <div className={`p-2.5 rounded-xl ${stat.bgColor}`}>
                   <stat.icon className={`h-5 w-5 ${stat.color}`} />
                 </div>
               </div>
