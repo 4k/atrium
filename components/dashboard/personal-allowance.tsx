@@ -3,14 +3,95 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PersonBadge } from './person-badge';
-import { people, personalAllowances } from '@/lib/mock-data';
 import { formatCurrency, cn } from '@/lib/utils';
 import { Coins, AlertTriangle, Sparkles, ArrowRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/database.types';
 
-export function PersonalAllowance() {
-  const allowanceData = people.map((person) => {
-    const allowance = personalAllowances.find((a) => a.personId === person.id);
-    
+type Person = Database['public']['Tables']['persons']['Row'];
+type PersonalAllowance = Database['public']['Tables']['personal_allowances']['Row'];
+
+interface PersonWithAllowance extends Person {
+  allowance?: PersonalAllowance;
+}
+
+export function PersonalAllowance({ householdId }: { householdId: string }) {
+  const [personsData, setPersonsData] = useState<PersonWithAllowance[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      const supabase = createClient();
+
+      // Get current month in YYYY-MM format
+      const currentMonth = new Date().toISOString().slice(0, 7);
+
+      // Fetch persons
+      const { data: persons, error: personsError } = await supabase
+        .from('persons')
+        .select('*')
+        .eq('household_id', householdId)
+        .order('created_at');
+
+      if (personsError || !persons) {
+        console.error('Error fetching persons:', personsError);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch allowances for each person
+      const personsWithAllowances = await Promise.all(
+        persons.map(async (person) => {
+          const { data: allowances, error: allowanceError } = await supabase
+            .from('personal_allowances')
+            .select('*')
+            .eq('person_id', person.id)
+            .eq('month', currentMonth)
+            .single();
+
+          if (allowanceError && allowanceError.code !== 'PGRST116') {
+            console.error('Error fetching allowance:', allowanceError);
+          }
+
+          return {
+            ...person,
+            allowance: allowances || undefined,
+          };
+        })
+      );
+
+      setPersonsData(personsWithAllowances);
+      setLoading(false);
+    }
+
+    fetchData();
+  }, [householdId]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Coins className="h-5 w-5" />
+            Personal Allowances
+          </CardTitle>
+          <CardDescription>
+            Monthly "fun money" for each person • No category tracking for privacy
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Loading allowance data...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const allowanceData = personsData.map((person) => {
+    const allowance = person.allowance;
+
     if (!allowance) {
       return {
         person,
@@ -25,18 +106,18 @@ export function PersonalAllowance() {
       };
     }
 
-    const totalAvailable = allowance.monthlyAmount + allowance.carryoverFromLastMonth;
-    const remaining = totalAvailable - allowance.currentMonthSpent;
+    const totalAvailable = allowance.monthly_amount + allowance.carryover_from_last_month;
+    const remaining = totalAvailable - allowance.current_month_spent;
     const isBorrowingFromNextMonth = remaining < 0;
     const borrowedAmount = Math.abs(Math.min(remaining, 0));
-    const percentUsed = Math.min(Math.round((allowance.currentMonthSpent / totalAvailable) * 100), 100);
+    const percentUsed = totalAvailable > 0 ? Math.min(Math.round((allowance.current_month_spent / totalAvailable) * 100), 100) : 0;
 
     return {
       person,
-      monthlyAmount: allowance.monthlyAmount,
-      spent: allowance.currentMonthSpent,
+      monthlyAmount: allowance.monthly_amount,
+      spent: allowance.current_month_spent,
       remaining: Math.max(remaining, 0),
-      carryover: allowance.carryoverFromLastMonth,
+      carryover: allowance.carryover_from_last_month,
       totalAvailable,
       percentUsed,
       isBorrowingFromNextMonth,
@@ -51,7 +132,7 @@ export function PersonalAllowance() {
     const circumference = 2 * Math.PI * radius;
     const arc = circumference * 0.75; // 270 degrees
     const filledArc = (data.percentUsed / 100) * arc;
-    
+
     // Calculate the color based on usage
     const getColor = () => {
       if (data.isBorrowingFromNextMonth) return 'text-red-500';
@@ -63,8 +144,8 @@ export function PersonalAllowance() {
     return (
       <div className={cn(
         'relative p-6 rounded-xl border-2 transition-colors',
-        data.person.id === 'tony' 
-          ? 'bg-blue-50/50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800' 
+        data.person.color === '#3b82f6' || data.person.color.includes('blue')
+          ? 'bg-blue-50/50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'
           : 'bg-purple-50/50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800'
       )}>
         {/* Header */}
